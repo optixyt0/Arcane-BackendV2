@@ -12,7 +12,7 @@ app.listen(port, () => {
 
 async function connectDB() {
     try {
-        await mongoose.connect('mongodb://localhost:27017/arcane', {
+        await mongoose.connect(process.env.MONGODB_URI, {
         });
         const testDB = mongoose.model('connectionTest',{ successful: String });
         const testDocument = new testDB({ successful: String });
