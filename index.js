@@ -2,8 +2,9 @@ const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
 const fs = require('fs');
+require('dotenv').config();
 
-const port = 3551;
+const port = process.env.PORT;
 
 app.listen(port, () => {
     console.log(`Arcane Backend running on port ${port}`);
