@@ -6,10 +6,6 @@ require('dotenv').config();
 
 const port = process.env.PORT;
 
-app.listen(port, () => {
-    console.log(`ArcaneV2 running on port ${port}`);
-});
-
 async function connectDB() {
     try {
         await mongoose.connect(process.env.MONGODB_URI, {
@@ -25,5 +21,10 @@ async function connectDB() {
         console.log(err);
     }
 }
+
+app.listen(port, () => {
+    console.log(`ArcaneV2 running on port ${port}`);
+});
+
 
 connectDB();
