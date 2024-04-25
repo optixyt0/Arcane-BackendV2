@@ -1,16 +1,14 @@
 import path from "path";
-import log from "./log.js";
+import log from "./log.mjs";
 import { dirname } from 'dirname-filename-esm';
+import fs from "fs";
 
 const __dirname = dirname(import.meta);
 
-import fs from "fs";
-
-async function createProfiles(accountId: string) {
-
+async function createProfiles(accountId) {
     log.debug(`Creating profiles for account ${accountId}`);
 
-    let profiles:Object = {};
+    let profiles = {};
 
     fs.readdirSync(path.join(__dirname, "../Config/DefaultProfiles/")).forEach(fileName => {
         const profile = JSON.parse(fs.readFileSync(path.join(__dirname, `../../Config/DefaultProfiles/${fileName}`), 'utf-8'));
@@ -28,7 +26,7 @@ async function createProfiles(accountId: string) {
 
 async function validateProfile(profileId, profiles) {
     try {
-        let profile = profiles.profiles[profileId];
+        let profile = profiles[profileId];
 
         if (!profile || !profileId) throw new Error("Invalid profile/profileId");
     } catch {
@@ -38,4 +36,4 @@ async function validateProfile(profileId, profiles) {
     return true;
 }
 
-export default { createProfiles, validateProfile }; 
+export default { createProfiles, validateProfile };
