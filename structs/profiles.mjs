@@ -11,7 +11,7 @@ async function createProfiles(accountId) {
     let profiles = {};
 
     fs.readdirSync(path.join(__dirname, "../Config/DefaultProfiles/")).forEach(fileName => {
-        const profile = JSON.parse(fs.readFileSync(path.join(__dirname, `../../Config/DefaultProfiles/${fileName}`), 'utf-8'));
+        const profile = JSON.parse(fs.readFileSync(path.join(__dirname, `../Config/DefaultProfiles/${fileName}`), 'utf-8'));
 
         profile.accountId = accountId;
         profile.created = new Date().toISOString();

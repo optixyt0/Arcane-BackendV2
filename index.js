@@ -2,14 +2,35 @@ const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
 const fs = require('fs');
-require('dotenv').config();
 const path = require('path');
-
+require('dotenv').config();
 
 let log;
 let error;
 let safety;
 const loggedUrls = new Set();
+
+async function manageTokens() {
+    let tokens;
+    if (safety.env.USE_REDIS === 'true') {
+        try {
+            const redisTokens = await kv.get('tokens');
+            tokens = JSON.parse(redisTokens);
+            if (!tokens) throw new Error("Failed to deserialize tokens from Redis.");
+        } catch (err) {
+            log.error("Redis tokens error, resetting from tokens.json: " + err.message);
+            const localData = fs.readFileSync(path.join(__dirname, "tokens.json"), 'utf8');
+            tokens = JSON.parse(localData);
+            await kv.set('tokens', localData);
+        }
+    } else {
+        const localData = fs.readFileSync(path.join(__dirname, "tokens.json"), 'utf8');
+        tokens = JSON.parse(localData);
+    }
+    global.accessTokens = tokens.accessTokens;
+    global.refreshTokens = tokens.refreshTokens;
+    global.clientTokens = tokens.clientTokens;
+}
 
 async function initializeModules() {
     try {
@@ -22,12 +43,12 @@ async function initializeModules() {
         const functionsModule = await import('./structs/functions.mjs');
         functions = functionsModule.default;
         const clientModule = await import('./bot/index.mjs');
-        client = clientModule.default; 
-	await safety.airbag();
-	await client.login(safety.env.BOT_TOKEN)
+        client = clientModule.default;
+        await safety.airbag();
+        await client.login(safety.env.BOT_TOKEN);
         global.safety = safety;
         global.safetyEnv = safety.env;
-        ;
+        await manageTokens();
     } catch (err) {
         console.error('Failed to load modules:', err);
         process.exit(1);
