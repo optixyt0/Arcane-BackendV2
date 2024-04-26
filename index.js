@@ -3,9 +3,12 @@ const app = express();
 const mongoose = require('mongoose');
 const fs = require('fs');
 require('dotenv').config();
+const path = require('path');
+
 
 let log;
 let error;
+let safety;
 const loggedUrls = new Set();
 
 async function initializeModules() {
@@ -14,16 +17,26 @@ async function initializeModules() {
         log = logModule.default;
         const errorModule = await import('./structs/error.mjs');
         error = errorModule.default;
+        const safetyModule = await import('./utilities/safety.mjs');
+        safety = safetyModule.default;
+        const functionsModule = await import('./structs/functions.mjs');
+        functions = functionsModule.default;
+        const clientModule = await import('./bot/index.mjs');
+        client = clientModule.default; 
+	await safety.airbag();
+	await client.login(safety.env.BOT_TOKEN)
+        global.safety = safety;
+        global.safetyEnv = safety.env;
+        ;
     } catch (err) {
         console.error('Failed to load modules:', err);
         process.exit(1);
     }
-    
-    const port = process.env.PORT || 3000;
+
+    const port = safety.env.PORT || 3000;
     app.listen(port, () => {
-        log.backend(`ArcaneV2 running on port ${port}`);
+        log.backend(safety.env.NAME + ` Backend running on port ${port}`);
         connectDB();
-        loggedUrls.add("/v1/version");
     }).on("error", async (err) => {
         if (err.message == "EADDRINUSE") {
             log.error(`Port ${port} is already in use!\nClosing in 3 seconds...`);
@@ -32,11 +45,7 @@ async function initializeModules() {
         } else throw err;
     });
 
-    app.get('/v1/version', function (req, res) {
-        res.json({ version: process.env.LAUNCHER_VER });
-    });
-
-    /*app.use((req, res, next) => {
+    app.use((req, res, next) => {
         const url = req.originalUrl;
         if (!loggedUrls.has(url)) {
             log.debug(`Missing endpoint: ${req.method} ${url} request port ${req.socket.localPort}`);
@@ -47,7 +56,7 @@ async function initializeModules() {
             );
         }
         next();
-    });*/
+    });
 }
 
 async function connectDB() {
@@ -67,3 +76,26 @@ async function connectDB() {
 }
 
 initializeModules();
+
+app.get('/api/v1/launcher/version', function (req, res) {
+    res.json({ version: safety.env.LAUNCHER_VER });
+});
+
+app.get('/api/v1/game/version', function (req, res) {
+    res.json({ version: safety.env.GAME_VER });
+});
+
+app.get("/", (req, res) => {
+    res.status(200).json({
+        status: "ok",
+        name: safety.env.NAME,
+        uptime: process.uptime(),
+        memoryUsage: process.memoryUsage(),
+        nodeVersion: process.version,
+        platform: process.platform,
+        arch: process.arch,
+        cpuUsage: process.cpuUsage(),
+        environment: process.env.NODE_ENV,
+    });
+});
+
