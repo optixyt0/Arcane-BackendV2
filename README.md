@@ -3,7 +3,7 @@
 
 ##### Around 25% done
 
-Creds to ObsessedTech for original code
+Creds to ObsessedTech for original code and Zetax for some samples from Momentum.
 # Features:
 - [ ] Matchmaker
 - [x] ENV
