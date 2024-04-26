@@ -8,3 +8,4 @@ Creds to ObsessedTech for original code
 - [ ] Matchmaker
 - [x] ENV
 - [x] MongoDB
+- [x] Discord Bot
